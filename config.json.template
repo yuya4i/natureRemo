@@ -1,0 +1,80 @@
+{
+  "api": {
+    "token": "your_api_token_here",
+    "base_url": "https://api.nature.global/1/",
+    "local_url": "http://[Nature Remo IP]/messages"
+  },
+  "devices": {
+    "aircon": {
+      "id": "your_aircon_device_id",
+      "settings": {
+        "mode": "cool",
+        "temp": "26",
+        "fan": "auto"
+      }
+    },
+    "light": {
+      "id": "your_light_device_id"
+    }
+  },
+  "schedule": [
+    {
+      "time": "07:00",
+      "action": "turn_on_light",
+      "device": "light",
+      "params": {}
+    },
+    {
+      "time": "22:00",
+      "action": "turn_off_light",
+      "device": "light",
+      "params": {}
+    },
+    {
+      "time": "08:00",
+      "action": "set_aircon",
+      "device": "aircon",
+      "params": {
+        "mode": "cool",
+        "temp": "26",
+        "fan": "auto"
+      }
+    }
+  ],
+  "automation": {
+    "temperature": {
+      "high_threshold": 28,
+      "low_threshold": 20,
+      "action_high": {
+        "device": "aircon",
+        "action": "set_aircon",
+        "params": {
+          "mode": "cool",
+          "temp": "26",
+          "fan": "auto"
+        }
+      },
+      "action_low": {
+        "device": "aircon",
+        "action": "turn_off_aircon",
+        "params": {}
+      }
+    },
+    "humidity": {
+      "high_threshold": 70,
+      "action": {
+        "device": "aircon",
+        "action": "set_aircon",
+        "params": {
+          "mode": "dry",
+          "fan": "auto"
+        }
+      }
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "natureRemo.log",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}
