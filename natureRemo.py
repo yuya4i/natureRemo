@@ -9,6 +9,69 @@ from typing import Dict, Any, Optional
 from logging import Logger
 from datetime import datetime
 from pythonjsonlogger import jsonlogger
+from dotenv import load_dotenv
+
+def load_config() -> Dict[str, Any]:
+    """環境変数から設定を読み込む"""
+    load_dotenv()
+    
+    return {
+        'api': {
+            'token': os.getenv('NATURE_REMO_API_TOKEN'),
+            'base_url': os.getenv('NATURE_REMO_BASE_URL'),
+            'local_url': os.getenv('NATURE_REMO_LOCAL_URL')
+        },
+        'devices': {
+            'aircon': {
+                'id': os.getenv('NATURE_REMO_AIRCON_ID'),
+                'settings': {
+                    'mode': os.getenv('DEFAULT_AIRCON_MODE', 'cool'),
+                    'temp': os.getenv('DEFAULT_AIRCON_TEMP', '26'),
+                    'fan': os.getenv('DEFAULT_AIRCON_FAN', 'auto')
+                }
+            },
+            'light': {
+                'id': os.getenv('NATURE_REMO_LIGHT_ID')
+            }
+        },
+        'automation': {
+            'temperature': {
+                'high_threshold': float(os.getenv('TEMP_HIGH_THRESHOLD', '28')),
+                'low_threshold': float(os.getenv('TEMP_LOW_THRESHOLD', '20')),
+                'action_high': {
+                    'device': 'aircon',
+                    'action': 'set_aircon',
+                    'params': {
+                        'mode': os.getenv('DEFAULT_AIRCON_MODE', 'cool'),
+                        'temp': os.getenv('DEFAULT_AIRCON_TEMP', '26'),
+                        'fan': os.getenv('DEFAULT_AIRCON_FAN', 'auto')
+                    }
+                },
+                'action_low': {
+                    'device': 'aircon',
+                    'action': 'turn_off_aircon',
+                    'params': {}
+                }
+            },
+            'humidity': {
+                'high_threshold': float(os.getenv('HUMIDITY_HIGH_THRESHOLD', '70')),
+                'action': {
+                    'device': 'aircon',
+                    'action': 'set_aircon',
+                    'params': {
+                        'mode': 'dry',
+                        'fan': 'auto'
+                    }
+                }
+            }
+        },
+        'schedule': json.loads(os.getenv('SCHEDULE_CONFIG', '[]')),
+        'logging': {
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'file': os.getenv('LOG_FILE', 'natureRemo.log'),
+            'format': os.getenv('LOG_FORMAT', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        }
+    }
 
 class NatureRemoAPI:
     """Nature Remo APIとの通信を担当するクラス"""
@@ -18,6 +81,9 @@ class NatureRemoAPI:
         Args:
             config: 設定情報を含む辞書
         """
+        if not config['api']['token']:
+            raise ValueError("API token is not set in environment variables")
+            
         self.token = config['api']['token']
         self.base_url = config['api']['base_url']
         self.local_url = config['api']['local_url']
@@ -193,15 +259,10 @@ class AutomationController:
 
 def main():
     """メイン関数"""
-    # 設定ファイルの読み込み
     try:
-        with open('config.json', 'r') as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        print("Error: config.json not found. Please copy config.json.template to config.json and configure it.")
-        return
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON in config.json: {str(e)}")
+        config = load_config()
+    except Exception as e:
+        print(f"Error: 設定の読み込みに失敗しました: {str(e)}")
         return
 
     # 各コントローラーの初期化

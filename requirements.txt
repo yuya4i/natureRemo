@@ -13,3 +13,6 @@ typing-extensions>=4.8.0
 
 # Logging
 python-json-logger>=2.0.7
+
+# Environment variables
+python-dotenv>=1.0.0
